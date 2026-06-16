@@ -55,8 +55,15 @@ rules:
   # Gold
   devices: done
   diagnostics: todo
-  discovery-update-info: todo
-  discovery: todo
+  discovery-update-info:
+    status: exempt
+    comment: >
+      Not applicable — discovery is exempt since Alarm.com is a cloud service
+      with no local network presence to rediscover.
+  discovery:
+    status: exempt
+    comment: >
+      Alarm.com devices, to my knowledge, do not exist on any local network. So they cannot be discovered.
   docs-data-update: todo
   docs-examples: todo
   docs-known-limitations: todo
