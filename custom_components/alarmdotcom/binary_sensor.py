@@ -22,7 +22,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
 
 from .binary_sensor_words import LANG_DOOR, LANG_WINDOW
-from .const import DATA_HUB, DOMAIN
+from .const import DOMAIN
 from .entity import (
     AdcControllerT,
     AdcEntity,
@@ -35,6 +35,8 @@ if TYPE_CHECKING:
     from .hub import AlarmHub
 
 log = logging.getLogger(__name__)
+
+PARALLEL_UPDATES = 0
 
 SENSOR_SUBTYPE_BLACKLIST = [
     pyadc.sensor.SensorSubtype.MOBILE_PHONE,  # Doesn't report anything useful.
@@ -51,7 +53,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the binary sensor platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.coordinator
 
     entities: list[BinarySensorEntity] = []
     for entity_description in ENTITY_DESCRIPTIONS:

@@ -62,6 +62,50 @@
             }
         }
     },
+    "services": {
+        "bypass_sensor": {
+            "name": "Bypass sensor",
+            "description": "Bypass a supported Alarm.com sensor.",
+            "fields": {
+                "resource_id": {
+                    "name": "Resource ID",
+                    "description": "Alarm.com resource ID for the sensor to bypass. Find this in the 'resource_id' attribute on the sensor's entity (Settings -> Devices & Services -> Alarm.com -> your device -> the sensor entity -> Attributes)."
+                },
+                "partition_id": {
+                    "name": "Partition ID",
+                    "description": "Optional Alarm.com partition resource ID. If omitted, the first partition on the same system is used."
+                }
+            }
+        },
+        "unbypass_sensor": {
+            "name": "Unbypass sensor",
+            "description": "Remove bypass from a supported Alarm.com sensor.",
+            "fields": {
+                "resource_id": {
+                    "name": "Resource ID",
+                    "description": "Alarm.com resource ID for the sensor to unbypass. Find this in the 'resource_id' attribute on the sensor's entity (Settings -> Devices & Services -> Alarm.com -> your device -> the sensor entity -> Attributes)."
+                },
+                "partition_id": {
+                    "name": "Partition ID",
+                    "description": "Optional Alarm.com partition resource ID. If omitted, the first partition on the same system is used."
+                }
+            }
+        },
+        "set_auto_off": {
+            "name": "Set auto-off timer",
+            "description": "Schedule one or more Alarm.com lights to turn off after a duration. Survives Home Assistant restarts: timers that expired while HA was offline fire immediately on startup; pending timers resume for their remaining time. The scheduled off-time is exposed as an 'auto_off_at' attribute on the light entity.",
+            "fields": {
+                "duration": {
+                    "name": "Duration",
+                    "description": "How long to wait before turning the light off."
+                }
+            }
+        },
+        "cancel_auto_off": {
+            "name": "Cancel auto-off timer",
+            "description": "Cancel a pending auto-off timer for one or more Alarm.com lights, if one is active."
+        }
+    },
     "selector": {
         "otp_methods_list": {
             "options": {

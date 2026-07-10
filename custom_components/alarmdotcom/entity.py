@@ -7,7 +7,7 @@ from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import _pyalarmdotcomajax as pyadc
 from homeassistant.core import callback
@@ -17,14 +17,15 @@ from homeassistant.helpers.device_registry import (
     CONNECTION_NETWORK_MAC,
     DeviceInfo,
 )
-from homeassistant.helpers.entity import Entity, EntityDescription
+from homeassistant.helpers.entity import EntityDescription
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-# from pyalarmdotcomajax import AdcManagedDeviceT
 from .const import DOMAIN
+from .coordinator import AlarmCoordinator
 from .util import slug_to_title
 
-if TYPE_CHECKING:
-    from .hub import AlarmHub
+# Alias so that existing callback type annotations (hub: AlarmHub) remain valid.
+AlarmHub = AlarmCoordinator
 
 log = logging.getLogger(__name__)
 
@@ -159,7 +160,7 @@ class AdcEntityDescription(
     """Provide a name for the entity."""
 
 
-class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
+class AdcEntity(CoordinatorEntity[AlarmCoordinator], Generic[AdcManagedDeviceT, AdcControllerT]):
     """Base Alarm.com entity."""
 
     entity_description: AdcEntityDescription[AdcManagedDeviceT, AdcControllerT]
@@ -173,8 +174,10 @@ class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
     ) -> None:
         """Initialize class."""
 
+        super().__init__(coordinator=hub)
+
         self.resource_id = resource_id
-        self.hub = hub
+        self.hub = hub  # alias for self.coordinator; keeps platform callbacks unchanged
         self.entity_description = description
 
         self.controller = description.controller_fn(hub, resource_id)
@@ -217,11 +220,39 @@ class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
 
         self.update_state(pyadc.ResourceEventMessage(topic=pyadc.EventBrokerTopic.RESOURCE_ADDED, id=self.resource_id))
 
-    async def async_added_to_hass(self) -> None:
-        """Register callbacks."""
+    @property
+    def available(self) -> bool:
+        """Return entity availability.
 
-        # Subscribe to updates for the device.
-        self.async_on_remove(self.hub.api.subscribe(self.event_handler, self.resource_id))
+        Overrides CoordinatorEntity.available (which returns coordinator.last_update_success)
+        so that our per-device availability logic from available_fn() is authoritative.
+        """
+        return self._attr_available
+
+    async def async_added_to_hass(self) -> None:
+        """Register coordinator subscription."""
+        await super().async_added_to_hass()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data pushed from the coordinator.
+
+        Called for every async_set_updated_data() call — both WS events and
+        the periodic safety-net poll. Replaces the old per-entity hub.api.subscribe()
+        callback so that all entities update from a single coordinator push.
+        """
+        if self.resource_id not in self.coordinator.api.managed_devices:
+            self.hass.async_create_task(self.remove())
+            return
+
+        self._attr_available = self.entity_description.available_fn(self.hub, self.resource_id)
+        self.update_state(
+            pyadc.ResourceEventMessage(
+                topic=pyadc.EventBrokerTopic.RESOURCE_UPDATED,
+                id=self.resource_id,
+            )
+        )
+        self.async_write_ha_state()
 
     async def remove(self) -> None:
         """Remove entity from Home Assistant."""
@@ -230,21 +261,3 @@ class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
             er.async_get(self.hass).async_remove(self.entity_id)
         else:
             await self.async_remove(force_remove=True)
-
-    @callback
-    def event_handler(self, message: pyadc.EventBrokerMessage) -> None:
-        """Handle event message."""
-
-        if message.topic in [
-            pyadc.EventBrokerTopic.RESOURCE_ADDED,
-            pyadc.EventBrokerTopic.RESOURCE_UPDATED,
-            pyadc.EventBrokerTopic.CONNECTION_EVENT,
-        ]:
-            self._attr_available = self.entity_description.available_fn(self.hub, self.resource_id)
-
-            if message.topic != pyadc.EventBrokerTopic.CONNECTION_EVENT:
-                self.update_state(message)
-
-            self.async_write_ha_state()
-        elif message.topic == pyadc.EventBrokerTopic.RESOURCE_DELETED:
-            self.hass.async_create_task(self.remove())

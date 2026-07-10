@@ -21,7 +21,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
 
-from .const import DATA_HUB, DOMAIN
+from .const import DOMAIN
 from .entity import (
     AdcControllerT,
     AdcEntity,
@@ -34,6 +34,8 @@ if TYPE_CHECKING:
     from .hub import AlarmHub
 
 log = logging.getLogger(__name__)
+
+PARALLEL_UPDATES = 0
 
 BATTERY_CLASSIFICATION_LABELS: dict[pyadc.base.BatteryLevel, str] = {
     pyadc.base.BatteryLevel.CRITICAL: "Critical",
@@ -54,7 +56,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.coordinator
 
     entities: list[AdcSensorEntity] = []
     for entity_description in ENTITY_DESCRIPTIONS:
