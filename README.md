@@ -125,7 +125,8 @@ Some Alarm.com providers may restrict combinations of these options.
 
 > [!NOTE]
 > **Garage Doors (MyQ):** MyQ garage doors don't natively integrate with Home Assistant, but they do through Alarm.com, making this integration useful if that's what you have. A dedicated local solution like [RATGDO](https://paulwieland.github.io/ratgdo/) is generally preferable for local control.
-> > However, if your opener uses **Security+ 3.0** (newer Chamberlain and LiftMaster models), no local solution currently supports it. This integration may be your only path to Home Assistant control.
+>
+>  However, if your opener uses **Security+ 3.0** (newer Chamberlain and LiftMaster models), no local solution currently supports it. This integration may be your only path to Home Assistant control.
 >
 > **Gates (MyQ):** MyQ gates use Security+ 2.0 with dry-contact wiring, there is no Security+ 3.0 gate. RATGDO and similar adapters can work with them, see the [RATGDO wiring guide](https://ratcloud.llc/pages/wiring) for specifics.
 
