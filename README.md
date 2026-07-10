@@ -124,9 +124,10 @@ Some Alarm.com providers may restrict combinations of these options.
 | Camera       | Live WebRTC stream, Snapshot          | ✔      | -           |-           | Requires the `www/alarm-webrtc-card.js` Lovelace card                    |
 
 > [!NOTE]
-> **Garage Doors (MyQ):** MyQ garage doors don't natively integrate with Home Assistant, but they do through Alarm.com — making this integration useful if that's what you have. A dedicated local solution like [RATGDO](https://paulwieland.github.io/ratgdo/) is generally preferable for local control. However, if your opener uses **Security+ 3.0** (newer Chamberlain and LiftMaster models), no local solution currently supports it — this integration may be your only path to Home Assistant control.
+> **Garage Doors (MyQ):** MyQ garage doors don't natively integrate with Home Assistant, but they do through Alarm.com, making this integration useful if that's what you have. A dedicated local solution like [RATGDO](https://paulwieland.github.io/ratgdo/) is generally preferable for local control.
+> > However, if your opener uses **Security+ 3.0** (newer Chamberlain and LiftMaster models), no local solution currently supports it. This integration may be your only path to Home Assistant control.
 >
-> **Gates (MyQ):** MyQ gates use Security+ 2.0 with dry-contact wiring, not Security+ 3.0. RATGDO and similar adapters can work with them — see the [RATGDO wiring guide](https://ratcloud.llc/pages/wiring) for specifics.
+> **Gates (MyQ):** MyQ gates use Security+ 2.0 with dry-contact wiring, there is no Security+ 3.0 gate. RATGDO and similar adapters can work with them, see the [RATGDO wiring guide](https://ratcloud.llc/pages/wiring) for specifics.
 
 ---
 
@@ -206,64 +207,6 @@ Recent improvements include:
 
 ---
 
-# Core Integration Notes
-
-<!--
-  DEVELOPER NOTE: What needs to happen before submitting this as a HA core integration.
-
-  ## What to exclude from the initial PR
-
-  HA's submission guidelines for new integrations require a focused first PR:
-
-  - Limit to a single platform (see rollout order below)
-  - Remove all custom service actions: bypass_sensor, unbypass_sensor,
-    set_auto_off, cancel_auto_off
-  - Remove diagnostics.py
-  - Remove reauthentication and reconfiguration flows
-  - Remove dynamic-devices and stale-devices logic
-    (cleanup_orphaned_entities_and_devices in util.py)
-
-  Once the initial PR is accepted, add features and additional platforms back
-  one PR at a time.
-
-  ## Camera platform blocker
-
-  The camera platform cannot ship in a core integration PR in its current form.
-  It requires a custom Lovelace card (www/alarm-webrtc-card.js) that cannot be
-  bundled with a core integration — HA core only ships frontend components that
-  are merged into the separate HA frontend repository.
-
-  Options before camera can go into a core PR:
-
-  (a) Exclude camera.py from the initial PR entirely and resubmit as a
-      follow-up after the base integration is accepted. Simplest path.
-
-  (b) Still-image-only redesign: return snapshots only from the camera entity,
-      which works with HA's built-in Picture Entity card. No custom card needed,
-      but streaming would be lost.
-
-  (c) Implement async_handle_async_webrtc_offer() so the stream works with
-      HA's built-in WebRTC camera card that ships with HA core. This is the
-      correct long-term path and would make camera fully first-class. If this
-      is done before the core PR, camera priority moves to 3rd or 4th.
-
-  ## Recommended platform rollout order
-
-  Add one platform per PR after the initial alarm_control_panel PR is accepted.
-
-  1.  alarm_control_panel  — core product; the alarm is the whole point
-  2.  binary_sensor        — doors, windows, motion; immediate automation value
-  3.  lock                 — security-adjacent, high demand
-  4.  cover                — garage doors and gates (indirect MyQ path)
-  5.  sensor               — battery summaries and trouble-condition reporting
-  6.  button               — panel debug and test actions
-  7.  light                — Alarm.com-connected lights
-  8.  climate              — thermostats; similar reasoning to lights
-  9.  valve                — less common Alarm.com device type
-  10. camera               — important for security but blocked on custom card
-                             (see above; moves to 3rd–4th if card issue resolved)
--->
-
 # Project Roadmap
 
 Planned areas of development include:
@@ -321,3 +264,59 @@ This fork exists to provide:
 This project is licensed under the MIT License.
 
 See the **LICENSE** file for details.
+
+<!--
+  DEVELOPER NOTE: What needs to happen before submitting this as a HA core integration.
+
+  ## What to exclude from the initial PR
+
+  HA's submission guidelines for new integrations require a focused first PR:
+
+  - Limit to a single platform (see rollout order below)
+  - Remove all custom service actions: bypass_sensor, unbypass_sensor,
+    set_auto_off, cancel_auto_off
+  - Remove diagnostics.py
+  - Remove reauthentication and reconfiguration flows
+  - Remove dynamic-devices and stale-devices logic
+    (cleanup_orphaned_entities_and_devices in util.py)
+
+  Once the initial PR is accepted, add features and additional platforms back
+  one PR at a time.
+
+  ## Camera platform blocker
+
+  The camera platform cannot ship in a core integration PR in its current form.
+  It requires a custom Lovelace card (www/alarm-webrtc-card.js) that cannot be
+  bundled with a core integration, HA core only ships frontend components that
+  are merged into the separate HA frontend repository.
+
+  Options before camera can go into a core PR:
+
+  (a) Exclude camera.py from the initial PR entirely and resubmit as a
+      follow-up after the base integration is accepted. Simplest path.
+
+  (b) Still-image-only redesign: return snapshots only from the camera entity,
+      which works with HA's built-in Picture Entity card. No custom card needed,
+      but streaming would be lost.
+
+  (c) Implement async_handle_async_webrtc_offer() so the stream works with
+      HA's built-in WebRTC camera card that ships with HA core. This is the
+      correct long-term path and would make camera fully first-class. If this
+      is done before the core PR, camera priority moves to 3rd or 4th.
+
+  ## Recommended platform rollout order
+
+  Add one platform per PR after the initial alarm_control_panel PR is accepted.
+
+  1.  alarm_control_panel  - core product; the alarm is the whole point
+  2.  binary_sensor        - doors, windows, motion; immediate automation value
+  3.  lock                 - security-adjacent, high demand
+  4.  cover                - garage doors and gates (indirect MyQ path)
+  5.  sensor               - battery summaries and trouble-condition reporting
+  6.  button               - panel debug and test actions
+  7.  light                - Alarm.com-connected lights
+  8.  climate              - thermostats; similar reasoning to lights
+  9.  valve                - less common Alarm.com device type
+  10. camera               - important for security but blocked on custom card
+                             (see above; moves to 3rd–4th if card issue resolved)
+-->
