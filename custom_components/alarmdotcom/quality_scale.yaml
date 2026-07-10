@@ -32,6 +32,10 @@ rules:
       set_auto_off, cancel_auto_off) with field descriptions and examples.
       strings.json includes a "services" section with translatable names and
       descriptions for each service and field.
+      NOTE: When submitting this as a core integration, remove all custom
+      services for the initial PR — HA submission guidelines explicitly list
+      "custom service actions" as features to exclude from a new integration's
+      first submission.
   docs-high-level-description: done
   docs-installation-instructions: done
   docs-removal-instructions: done
@@ -120,6 +124,10 @@ rules:
       Entities self-remove on RESOURCE_DELETED events. Binary sensors
       handle RESOURCE_ADDED for runtime additions. cleanup_orphaned_entities_and_devices
       in util.py removes stale entities and devices on each setup.
+      NOTE: When submitting this as a core integration, remove dynamic-devices
+      logic for the initial PR — HA submission guidelines list this as a
+      "complex quality scale rule" to exclude from a new integration's first
+      submission.
   entity-category: done
   entity-device-class: done
   entity-disabled-by-default: todo
@@ -143,6 +151,8 @@ rules:
     comment: >
       cleanup_orphaned_entities_and_devices in util.py removes devices
       with no remaining entities on each platform setup.
+      NOTE: Same as dynamic-devices — remove for the initial core PR per
+      HA submission guidelines.
 
   # Platinum
   async-dependency:

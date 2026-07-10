@@ -45,7 +45,7 @@ Because this integration communicates with Alarm.com cloud services, functionali
 >
 >You should rely on **Alarm.com's official monitoring services and mobile applications.**
 >
->Where possible, use **locally controlled Home Assistant integrations** for automation. Local integrations continue functioning during internet outages, while >this integration requires cloud communication.
+>Where possible, use **locally controlled Home Assistant integrations** for automation. Local integrations continue functioning during internet outages, while this integration requires cloud communication.
 
 > [!TIP]
 > Some alarm.com devices use Z-Wave, so if you have a Z-Wave dongle then you can move the devices from alarm.com to Home Assistant's [native Z-Wave integration](https://www.home-assistant.io/integrations/zwave_js/)
@@ -77,7 +77,7 @@ After restarting:
 **Settings → Devices & Services → Add Integration → Alarm.com**
 
 ## Prerequisites
-Before setting up this integation you need the following
+Before setting up this integration you need the following
 
 1. An active alarm.com account
 2. Know the login for the alarm.com and be able to fill the One-Time Password
@@ -115,13 +115,18 @@ Some Alarm.com providers may restrict combinations of these options.
 | Device Type  | Actions                               | Status | Low Battery | Malfunction | Notes                                                                     |
 | ------------ | ------------------------------------- | ------ | ----------- | ----------- | ------------------------------------------------------------------------- |
 | Alarm System | Arm Away, Arm Stay, Arm Night, Disarm | ✔      | ✔           | ✔           |                                                                           |
-| Garage Door  | Open, Close                           | ✔      | ✔           | ✔           |  Good if you have MyQ Garage doors since they dont natively work with Home Assistant but do with Alarm.com, although devices like a RATGDO would be a better option for local control. However, newer Security+ 3.0 garage doors do not work with a RATGDO or anything similar to it so this may be the only way to control it using Home Assistant.  |
-| Gate         | Open, Close                           | ✔      | ✔           | ✔           |   Good if you have MyQ Gates since they dont natively work with Home Assistant but do with Alarm.com, although devices like a RATGDO would be a better option for local control.  <!-- There are no MyQ gates with Security+ 3.0, only Security+ 2.0, even then those gates use dry contact. More info: https://ratcloud.llc/pages/wiring -->  |
+| Garage Door  | Open, Close                           | ✔      | ✔           | ✔           | See MyQ / Security+ 3.0 note below                                       |
+| Gate         | Open, Close                           | ✔      | ✔           | ✔           | See MyQ note below                                                        |
 | Light        | On / Off / Brightness                 | ✔      | ✔           | ✔           |                                                                           |
 | Lock         | Lock, Unlock                          | ✔      | ✔           | ✔           |                                                                           |
 | Sensor       | None                                  | ✔      | ✔           | ✔           | Contact sensors will not report repeated changes within a 3 minute window |
 | Thermostat   | Heat, Cool, Auto, Fan                 | ✔      | ✔           | ✔           | Fan-only mode runs for the maximum duration supported by Alarm.com        |
 | Camera       | Live WebRTC stream, Snapshot          | ✔      | -           |-           | Requires the `www/alarm-webrtc-card.js` Lovelace card                    |
+
+> [!NOTE]
+> **Garage Doors (MyQ):** MyQ garage doors don't natively integrate with Home Assistant, but they do through Alarm.com — making this integration useful if that's what you have. A dedicated local solution like [RATGDO](https://paulwieland.github.io/ratgdo/) is generally preferable for local control. However, if your opener uses **Security+ 3.0** (newer Chamberlain and LiftMaster models), no local solution currently supports it — this integration may be your only path to Home Assistant control.
+>
+> **Gates (MyQ):** MyQ gates use Security+ 2.0 with dry-contact wiring, not Security+ 3.0. RATGDO and similar adapters can work with them — see the [RATGDO wiring guide](https://ratcloud.llc/pages/wiring) for specifics.
 
 ---
 
@@ -179,10 +184,10 @@ Still image snapshots are also available, which means the camera will display a 
 
 Removing this integration is the same as most HACS integrations:
 
-- Go to **Settings** → **Devices & Services** and select the alarm.com integration card.
-- From the list of devices, select the alarm.com entry.
-- Next to the entry, select the three-dot menu, then select **Delete**.
-- Repeat steps 2 and 3 for every entry you have
+- Go to **Settings** → **Devices & Services**
+- Find the **Alarm.com** integration card
+- Click the **three-dot menu** on the card and select **Delete**
+- Repeat for any additional Alarm.com entries
 - Go to HACS, select the three-dot menu for this integration, then select **Remove**.
 - Then restart Home Assistant to clear the cache
 
@@ -200,6 +205,64 @@ Recent improvements include:
 * Improved websocket connection reliability
 
 ---
+
+# Core Integration Notes
+
+<!--
+  DEVELOPER NOTE: What needs to happen before submitting this as a HA core integration.
+
+  ## What to exclude from the initial PR
+
+  HA's submission guidelines for new integrations require a focused first PR:
+
+  - Limit to a single platform (see rollout order below)
+  - Remove all custom service actions: bypass_sensor, unbypass_sensor,
+    set_auto_off, cancel_auto_off
+  - Remove diagnostics.py
+  - Remove reauthentication and reconfiguration flows
+  - Remove dynamic-devices and stale-devices logic
+    (cleanup_orphaned_entities_and_devices in util.py)
+
+  Once the initial PR is accepted, add features and additional platforms back
+  one PR at a time.
+
+  ## Camera platform blocker
+
+  The camera platform cannot ship in a core integration PR in its current form.
+  It requires a custom Lovelace card (www/alarm-webrtc-card.js) that cannot be
+  bundled with a core integration — HA core only ships frontend components that
+  are merged into the separate HA frontend repository.
+
+  Options before camera can go into a core PR:
+
+  (a) Exclude camera.py from the initial PR entirely and resubmit as a
+      follow-up after the base integration is accepted. Simplest path.
+
+  (b) Still-image-only redesign: return snapshots only from the camera entity,
+      which works with HA's built-in Picture Entity card. No custom card needed,
+      but streaming would be lost.
+
+  (c) Implement async_handle_async_webrtc_offer() so the stream works with
+      HA's built-in WebRTC camera card that ships with HA core. This is the
+      correct long-term path and would make camera fully first-class. If this
+      is done before the core PR, camera priority moves to 3rd or 4th.
+
+  ## Recommended platform rollout order
+
+  Add one platform per PR after the initial alarm_control_panel PR is accepted.
+
+  1.  alarm_control_panel  — core product; the alarm is the whole point
+  2.  binary_sensor        — doors, windows, motion; immediate automation value
+  3.  lock                 — security-adjacent, high demand
+  4.  cover                — garage doors and gates (indirect MyQ path)
+  5.  sensor               — battery summaries and trouble-condition reporting
+  6.  button               — panel debug and test actions
+  7.  light                — Alarm.com-connected lights
+  8.  climate              — thermostats; similar reasoning to lights
+  9.  valve                — less common Alarm.com device type
+  10. camera               — important for security but blocked on custom card
+                             (see above; moves to 3rd–4th if card issue resolved)
+-->
 
 # Project Roadmap
 
