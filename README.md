@@ -10,101 +10,52 @@ Repository and issue tracker:
 
 https://github.com/ibasebcast/ha-alarmdotcom
 
-The maintainer of this fork operates Alarm.com systems professionally and has access to multiple Alarm.com environments, allowing testing across a wider variety of devices and system configurations.
-
 Community feedback, testing, and contributions are welcome.
-
----
-
-# Maintainer
-
-This integration is currently maintained by:
-
-**Chris Pulliam**
-GitHub: https://github.com/ibasebcast
-
-The goal of this project is to ensure the Alarm.com ecosystem remains usable within Home Assistant as the platform evolves.
-
-This fork exists to provide:
-
-* Continued compatibility with new Home Assistant versions
-* Expanded device support
-* Improved reliability and error handling
-* Long-term maintenance of the integration
 
 ---
 
 # Overview
 
-This custom component allows Home Assistant to interface with **Alarm.com** using the Alarm.com web platform.
+This custom integration allows Home Assistant to interface with [**Alarm.com**](https://Alarm.com) using the Alarm.com web platform.
 
 The integration focuses primarily on Alarm.com security system functionality and requires an Alarm.com service package that includes security system support.
 
 Because this integration communicates with Alarm.com cloud services, functionality may change if Alarm.com modifies their platform.
 
 ---
+> [!WARNING]
+> # Safety Notice
+>
+>This integration is designed for **convenience and automation**, but it should **not be relied upon for safety-critical functions.**
+>
+>Reasons include:
+>
+>1. This integration communicates with Alarm.com using unofficial endpoints.
+>2. Alarm.com status updates may take time to propagate.
+>3. Home Assistant automations may introduce unintended behavior.
+>4. This code is community developed and may contain bugs.
+>
+>For critical alerts such as:
+>
+>* Break-ins
+>* Fire
+>* Carbon monoxide
+>* Water leaks
+>* Freeze warnings
+>
+>You should rely on **Alarm.com's official monitoring services and mobile applications.**
+>
+>Where possible, use **locally controlled Home Assistant integrations** for automation. Local integrations continue functioning during internet outages, while >this integration requires cloud communication.
 
-# Safety Notice
-
-This integration is designed for **convenience and automation**, but it should **not be relied upon for safety-critical functions.**
-
-Reasons include:
-
-1. This integration communicates with Alarm.com using unofficial endpoints.
-2. Alarm.com status updates may take time to propagate.
-3. Home Assistant automations may introduce unintended behavior.
-4. This code is community developed and may contain bugs.
-
-For critical alerts such as:
-
-* Break-ins
-* Fire
-* Carbon monoxide
-* Water leaks
-* Freeze warnings
-
-You should rely on **Alarm.com's official monitoring services and mobile applications.**
-
-Where possible, use **locally controlled Home Assistant integrations** for automation. Local integrations continue functioning during internet outages, while this integration requires cloud communication.
-
+> [!TIP]
+> Some alarm.com devices use Z-Wave, so if you have a Z-Wave dongle then you can move the devices from alarm.com to Home Assistant's [native Z-Wave integration](https://www.home-assistant.io/integrations/zwave_js/)
 ---
 
-# Supported Devices
+# How to install and setup the integration
 
-| Device Type  | Actions                               | Status | Low Battery | Malfunction | Notes                                                                     |
-| ------------ | ------------------------------------- | ------ | ----------- | ----------- | ------------------------------------------------------------------------- |
-| Alarm System | Arm Away, Arm Stay, Arm Night, Disarm | ✔      | ✔           | ✔           |                                                                           |
-| Garage Door  | Open, Close                           | ✔      | ✔           | ✔           |                                                                           |
-| Gate         | Open, Close                           | ✔      | ✔           | ✔           |                                                                           |
-| Light        | On / Off / Brightness                 | ✔      | ✔           | ✔           |                                                                           |
-| Lock         | Lock, Unlock                          | ✔      | ✔           | ✔           |                                                                           |
-| Sensor       | None                                  | ✔      | ✔           | ✔           | Contact sensors will not report repeated changes within a 3 minute window |
-| Thermostat   | Heat, Cool, Auto, Fan                 | ✔      | ✔           | ✔           | Fan-only mode runs for the maximum duration supported by Alarm.com        |
-| Camera       | Live WebRTC stream, Snapshot          | ✔      | —           | —           | Requires the `www/alarm-webrtc-card.js` Lovelace card                    |
+## Installation
 
----
-
-# Supported Sensor Types
-
-| Sensor Type             | Description                    |
-| ----------------------- | ------------------------------ |
-| Contact                 | Doors and windows              |
-| Freeze                  | Temperature threshold sensors  |
-| Glass Break / Vibration | Standalone or panel-integrated |
-| Motion                  | Motion detection sensors       |
-| Vibration Contact       | Doors, safes, windows          |
-| Water                   | Leak sensors                   |
-
-Alarm.com may use different internal identifiers for some sensors.
-If a supported sensor does not appear in Home Assistant, please open an issue.
-
-https://github.com/ibasebcast/ha-alarmdotcom/issues
-
----
-
-# Installation
-
-## Install Using HACS (Recommended)
+### Install Using HACS (Recommended)
 
 1. Open **HACS**
 2. Navigate to **Integrations**
@@ -125,9 +76,14 @@ After restarting:
 
 **Settings → Devices & Services → Add Integration → Alarm.com**
 
----
+## Prerequisites
+Before setting up this integation you need the following
 
-# Configuration
+1. An active alarm.com account
+2. Know the login for the alarm.com and be able to fill the One-Time Password
+3. Have a device connected to alarm.com
+
+## Setup
 
 When adding the integration you will be prompted for:
 
@@ -135,7 +91,7 @@ When adding the integration you will be prompted for:
 | ----------------- | -------- | ------------------------------------------------------- |
 | Username          | Yes      | Alarm.com account username                              |
 | Password          | Yes      | Alarm.com account password                              |
-| One-Time Password | Optional | Required if your account uses two-factor authentication |
+| One-Time Password | Maybe    | Required if your account uses two-factor authentication |
 
 ---
 
@@ -154,8 +110,45 @@ Some Alarm.com providers may restrict combinations of these options.
 
 ---
 
+# Supported Devices
+
+| Device Type  | Actions                               | Status | Low Battery | Malfunction | Notes                                                                     |
+| ------------ | ------------------------------------- | ------ | ----------- | ----------- | ------------------------------------------------------------------------- |
+| Alarm System | Arm Away, Arm Stay, Arm Night, Disarm | ✔      | ✔           | ✔           |                                                                           |
+| Garage Door  | Open, Close                           | ✔      | ✔           | ✔           |  Good if you have MyQ Garage doors since they dont natively work with Home Assistant but do with Alarm.com, although devices like a RATGDO would be a better option for local control. However, newer Security+ 3.0 garage doors do not work with a RATGDO or anything similar to it so this may be the only way to control it using Home Assistant.  |
+| Gate         | Open, Close                           | ✔      | ✔           | ✔           |   Good if you have MyQ Gates since they dont natively work with Home Assistant but do with Alarm.com, although devices like a RATGDO would be a better option for local control.  <!-- There are no MyQ gates with Security+ 3.0, only Security+ 2.0, even then those gates use dry contact. More info: https://ratcloud.llc/pages/wiring -->  |
+| Light        | On / Off / Brightness                 | ✔      | ✔           | ✔           |                                                                           |
+| Lock         | Lock, Unlock                          | ✔      | ✔           | ✔           |                                                                           |
+| Sensor       | None                                  | ✔      | ✔           | ✔           | Contact sensors will not report repeated changes within a 3 minute window |
+| Thermostat   | Heat, Cool, Auto, Fan                 | ✔      | ✔           | ✔           | Fan-only mode runs for the maximum duration supported by Alarm.com        |
+| Camera       | Live WebRTC stream, Snapshot          | ✔      | -           |-           | Requires the `www/alarm-webrtc-card.js` Lovelace card                    |
+
 ---
 
+# Supported Sensor Types
+
+| Sensor Type             | Description                    |
+| ----------------------- | ------------------------------ |
+| Contact                 | Doors and windows              |
+| Freeze                  | Temperature threshold sensors  |
+| Glass Break / Vibration | Standalone or panel-integrated |
+| Motion                  | Motion detection sensors       |
+| Vibration Contact       | Doors, safes, windows          |
+| Water                   | Leak sensors                   |
+
+Alarm.com may use different internal identifiers for some sensors.
+If a supported sensor does not appear in Home Assistant, please open an issue.
+
+https://github.com/ibasebcast/ha-alarmdotcom/issues
+
+---
+# Data Updates
+
+This integration's IoT class is cloud push, so when a change happens on alarm.com home assistant is notified about it. As a backup this integration also polls alarm.com for state changes every 5 minutes.
+
+Because this integration is cloud push, that means every actions goes through alarm.com's cloud and an active internet connection is required for this integration to work.
+
+---
 # Camera Support
 
 This integration includes WebRTC live-streaming support for Alarm.com cameras.
@@ -181,52 +174,30 @@ When the card loads it calls the `camera.turn_on` service which fetches a fresh 
 
 Still image snapshots are also available, which means the camera will display a thumbnail in the Home Assistant media browser and picture-glance dashboard cards.
 
+
+## Removing This Integration
+
+Removing this integration is the same as most HACS integrations:
+
+- Go to **Settings** → **Devices & Services** and select the alarm.com integration card.
+- From the list of devices, select the alarm.com entry.
+- Next to the entry, select the three-dot menu, then select **Delete**.
+- Repeat steps 2 and 3 for every entry you have
+- Go to HACS, select the three-dot menu for this integration, then select **Remove**.
+- Then restart Home Assistant to clear the cache
+
 ---
 
 # Development Status
 
-This integration is under active maintenance. **Version `2026.7.9.3`** is the current stable release, consolidating a significant round of fixes and new features - see `CHANGELOG.md` for the complete, detailed history, but the highlights:
+This integration is under active maintenance.
 
-### Security fix
+Recent improvements include:
 
-**Arm/disarm code enforcement was silently broken.** If you configured a code to require for arming/disarming, entering *any* correctly-formatted code - not necessarily the one you set - would still successfully arm or disarm. This is now fixed and covered by automated regression tests. If you rely on the code requirement, you should update as soon as practical.
-
-### New features
-
-* **A diagnostics page** (Settings → Devices & Services → Alarm.com → Download diagnostics) - a downloadable snapshot of everything the integration knows about your account or a specific device, with all credentials and session tokens automatically redacted. Useful for troubleshooting and for attaching to bug reports without needing to dig through logs or worry about leaking a live camera token.
-* **Account-wide low/critical battery count sensors** - two new entities that track how many devices currently report low or critical battery, with the specific device names available as an attribute, so you don't have to check every sensor individually.
-
-### Bug fixes
-
-* Two real bugs found while adding test coverage: duplicate config entries were never actually prevented, and a crash could occur in the reconnect-recovery path after enough failed connection attempts.
-* Camera diagnostics were silently missing all camera data due to cameras using a different internal discovery path than every other device type - now fixed and verified against a real account with real cameras.
-* Live camera session tokens were being written to Home Assistant's logs whenever debug logging was enabled - this is now off by default and opt-in only, and separately redacted anywhere else this data surfaces.
-* Carried-forward fixes from `2026.7.6`: the iPhone/iPad/Safari black-screen camera issue, and a bug where entity state could silently stop updating until a full integration reload.
-
-### Under the hood
-
-* **Vendored the `pyalarmdotcomajax` API client directly into this repository** (see "Architecture Note" below) - this was previously a real HACS compliance blocker and a source of duplicated bug reports across two repos.
-* **A real, automated test suite** now runs in CI on every push and pull request, covering config flow, setup/unload lifecycle, the arm-code security fix, diagnostics (including the redaction itself), and the new battery sensors.
-* `mypy` now reports zero type errors across the entire codebase, for the first time - `ruff`, `codespell`, and `taplo` all pass cleanly as well.
-* A preemptive fix for a Home Assistant deprecation that becomes a hard error in December 2026 (a config-entry reload pattern used during reauthentication), verified directly against Home Assistant's own source code before shipping.
-
----
-
-# Architecture Note: Vendored `pyalarmdotcomajax`
-
-As of `2026.7.6.1b0`, the `pyalarmdotcomajax` Alarm.com API client lives directly in this repository, instead of being installed separately via a `git+` URL in `manifest.json`. As of `2026.7.7.1b0`, it's vendored under the deliberately collision-proof name `_pyalarmdotcomajax` at `custom_components/alarmdotcom/_pyalarmdotcomajax/` (see below for why the name changed).
-
-**Why:** `pyalarmdotcomajax` was previously a separate repository ([ibasebcast/pyalarmdotcomajax](https://github.com/ibasebcast/pyalarmdotcomajax)) that this integration depended on via a `git+` dependency. In practice, the two repos were never really independent — nearly every bug fix required a version bump in `pyalarmdotcomajax`, then a matching dependency-pin bump here, then a release of both. Bugs also frequently got reported in both repos as duplicates, since from a user's perspective it's one integration. On top of the coordination overhead, a `git+` dependency in `manifest.json` is a HACS/hassfest compliance issue, since HACS/hassfest strongly prefer plain PyPI-resolvable requirements.
-
-**What changed:**
-- The library's code (and its git history) now lives under `custom_components/alarmdotcom/_pyalarmdotcomajax/`. It's imported as `_pyalarmdotcomajax` (leading underscore), not `pyalarmdotcomajax`, deliberately: no legitimate PyPI package can use a leading underscore, so this name can never collide with a stray pip-installed `pyalarmdotcomajax` (e.g. one left over from before this vendoring change). Without that, a missing or broken vendored copy could silently fall back to a stale pip-installed copy instead of failing loudly - which is exactly what happened during beta testing of `2026.7.6.1b0`.
-- `manifest.json` no longer has a `git+` requirement; it now lists the library's actual runtime dependencies directly (`mashumaro`, `phonenumbers`, `pyhumps`, `typer`, `beautifulsoup4`), which were previously pulled in transitively.
-- The library's internal code is otherwise unchanged and still uses absolute imports internally (e.g. `from _pyalarmdotcomajax.controllers.users import ...`, updated from the original `pyalarmdotcomajax.` prefix as part of the rename). This integration's `__init__.py` adds the vendored directory to `sys.path` before anything imports it, so those imports keep resolving without needing every file in the library rewritten to relative imports.
-- No functional/runtime behavior changes are intended by this move — it's a packaging change only.
-
-**What this means going forward:**
-- Bug reports and contributions related to the Alarm.com API client now belong in this repository, not a separate one.
-- The standalone `pyalarmdotcomajax` repository is no longer the source of truth for this integration; see that repository's own README for its current status.
+* Restored compatibility with modern Home Assistant releases
+* Fixed entities becoming unavailable
+* Updated device registry usage to comply with upcoming Home Assistant requirements
+* Improved websocket connection reliability
 
 ---
 
@@ -239,6 +210,7 @@ Planned areas of development include:
 * Expanded automation and scene support
 * Additional device diagnostics and status reporting
 * Continued compatibility updates for new Home Assistant releases
+* Maybe submission of this custom integration as a core integration
 
 Community testing and feedback help guide development priorities.
 
@@ -257,6 +229,27 @@ When reporting issues include:
 * Home Assistant version
 * Integration version
 * Relevant Home Assistant logs
+* Diagnostics of your alarm.com config entry
+
+---
+
+# Maintainer
+
+This integration is currently maintained by:
+
+**Chris Pulliam**
+GitHub: https://github.com/ibasebcast
+
+The maintainer of this fork operates Alarm.com systems professionally and has access to multiple Alarm.com environments, allowing testing across a wider variety of devices and system configurations.
+
+The goal of this project is to ensure the Alarm.com ecosystem remains usable within Home Assistant as the platform evolves.
+
+This fork exists to provide:
+
+* Continued compatibility with new Home Assistant versions
+* Expanded device support
+* Improved reliability and error handling
+* Long-term maintenance of the integration
 
 ---
 
