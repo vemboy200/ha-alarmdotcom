@@ -35,7 +35,7 @@ from datetime import timedelta
 import _pyalarmdotcomajax as pyadc
 import aiohttp
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import Event, HomeAssistant, ServiceCall
 from homeassistant.exceptions import (
@@ -456,7 +456,14 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     activity_feed_tracker.async_stop()
     unload_success = await hub.close()
 
-    remaining = [e for e in hass.config_entries.async_entries(DOMAIN) if e.entry_id != config_entry.entry_id]
+    # LOADED, not merely present: async_entries() includes disabled and ignored
+    # entries, which have no hub and cannot serve these services. Counting them
+    # keeps the services registered against the hub closed three lines above.
+    remaining = [
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.entry_id != config_entry.entry_id and e.state is ConfigEntryState.LOADED
+    ]
     if not remaining:
         for service in (SERVICE_BYPASS_SENSOR, SERVICE_UNBYPASS_SENSOR, SERVICE_SET_AUTO_OFF, SERVICE_CANCEL_AUTO_OFF):
             if hass.services.has_service(DOMAIN, service):
