@@ -108,7 +108,7 @@ def _device_exists_in_registry(hub: AlarmHub, resource_id: str) -> bool:
     device_registry = dr.async_get(hub.hass)
     return any(
         (DOMAIN, resource_id) in device.identifiers
-        for device in device_registry.devices.values()
+        for device in device_registry.devices
     )
 
 
